@@ -5,6 +5,7 @@ import {Aabb} from '../../util/primitives/aabb.ts';
 import {clamp, degreesToRadians, scaleZoom} from '../../util/util.ts';
 import {cameraMercatorCoordinate, maxMercatorHorizonAngle} from './mercator_utils.ts';
 import {earthRadius} from '../lng_lat.ts';
+import {normalizeUnderzoomLevels} from '../../source/underzoom.ts';
 import {type IBoundingVolume, IntersectionResult} from '../../util/primitives/bounding_volume.ts';
 
 import type {Terrain} from '../../render/terrain.ts';
@@ -29,6 +30,11 @@ export type CoveringTilesOptions = {
      * Smallest allowed tile zoom.
      */
     minzoom?: number;
+    /**
+     * Number of levels below minzoom at which native minimum-zoom tiles remain visible.
+     * Defaults to zero and is capped at four; each extra level can quadruple the tile count.
+     */
+    underzoomLevels?: number;
     /**
      * Largest allowed tile zoom.
      */
@@ -299,7 +305,10 @@ export function coveringTiles(transform: IReadonlyTransform, options: CoveringTi
     const desiredZ = coveringZoomLevel(transform, options);
     const minZoom = options.minzoom || 0;
     const maxZoom = options.maxzoom !== undefined ? options.maxzoom : transform.maxZoom;
-    const nominalZ = Math.min(Math.max(0, desiredZ), maxZoom);
+    const underzoomLevels = normalizeUnderzoomLevels(options.underzoomLevels);
+    const minimumDesiredZoom = minZoom - underzoomLevels;
+    const underzoomNominal = underzoomLevels > 0 && desiredZ < minZoom && desiredZ >= minimumDesiredZoom;
+    const nominalZ = Math.min(underzoomNominal ? minZoom : Math.max(0, desiredZ), maxZoom);
 
     const numTiles = Math.pow(2, nominalZ);
     const cameraPoint = [numTiles * cameraCoord.x, numTiles * cameraCoord.y, 0];
@@ -363,14 +372,15 @@ export function coveringTiles(transform: IReadonlyTransform, options: CoveringTi
         }
         thisTileDesiredZ = (options.roundZoom ? Math.round : Math.floor)(thisTileDesiredZ);
         thisTileDesiredZ = Math.max(0, thisTileDesiredZ);
-        const z = Math.min(thisTileDesiredZ, maxZoom);
+        const shouldUnderzoom = thisTileDesiredZ < minZoom && thisTileDesiredZ >= minimumDesiredZoom;
+        const z = Math.min(shouldUnderzoom ? minZoom : thisTileDesiredZ, maxZoom);
 
         // We need to compute a valid wrap value for the tile to keep globe compatibility with mercator
         it.wrap = detailsProvider.getWrap(centerCoord, tileID, it.wrap);
 
         // Have we reached the target depth?
         if (it.zoom >= z) {
-            if (it.zoom < minZoom) {
+            if (it.zoom < minZoom || (underzoomLevels > 0 && thisTileDesiredZ < minimumDesiredZoom)) {
                 continue;
             }
             const dz = nominalZ - it.zoom;

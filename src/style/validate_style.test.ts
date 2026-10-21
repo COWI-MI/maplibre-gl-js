@@ -1,4 +1,5 @@
 import {describe, test, expect, vi, afterEach} from 'vitest';
+import {latest as sharedStyleSpec} from '@maplibre/maplibre-gl-style-spec';
 import {validateAndEmit, validateStyle, validateStyleAndEmit} from './validate_style.ts';
 import {Evented, type ErrorEventType} from '../util/evented.ts';
 
@@ -106,5 +107,19 @@ describe('validateStyleAndEmit', () => {
 
         expect(hasErrors).toBe(true);
         expect(fired).toEqual([expect.stringContaining('layers[0]')]);
+    });
+});
+
+describe('underzoom source validation', () => {
+    test('validates whole styles and source setters without modifying the shared schema', () => {
+        const style = {version: 8 as const, sources: {
+            roads: {type: 'vector' as const, tiles: ['https://example.com/{z}/{x}/{y}.pbf'], underzoomLevels: 2}
+        }, layers: []};
+        expect(validateStyle(style)).toEqual([]);
+        const {emitter, fired} = setup();
+        expect(validateAndEmit(emitter, validateStyle.source, {key: 'sources.roads', value: style.sources.roads})).toBe(false);
+        expect(fired).toEqual([]);
+        expect(Object.hasOwn(sharedStyleSpec.source_vector, 'underzoomLevels')).toBe(false);
+        expect(validateStyle({...style, sources: {roads: {...style.sources.roads, underzoomLevels: 1.5}}}).length).toBeGreaterThan(0);
     });
 });

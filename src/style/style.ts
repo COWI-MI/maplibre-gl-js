@@ -39,6 +39,7 @@ import {
 } from '../util/actor_messages.ts';
 import {createProjectionFromName} from '../geo/projection/projection_factory.ts';
 
+import type {SourceSpecification, StyleSpecification} from './source_specification.ts';
 import type {Source} from '../source/source.ts';
 import type {GeoJSONSource} from '../source/geojson_source.ts';
 import type {StyleLayer} from './style_layer.ts';
@@ -53,10 +54,8 @@ import type {Placement} from '../symbol/placement.ts';
 import type {
     LayerSpecification,
     FilterSpecification,
-    StyleSpecification,
     FontFacesSpecification,
     LightSpecification,
-    SourceSpecification,
     SpriteSpecification,
     ProjectionSpecification,
     SkySpecification,

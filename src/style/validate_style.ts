@@ -1,6 +1,6 @@
-import {latest as styleSpec, validateStyleMin} from '@maplibre/maplibre-gl-style-spec';
+import {latest as baseStyleSpec, validateStyleMin} from '@maplibre/maplibre-gl-style-spec';
 import {ErrorEvent} from '../util/evented.ts';
-import {warnOnce} from '../util/util.ts';
+import {extend, warnOnce} from '../util/util.ts';
 
 import type {StyleSpecification, ValidationError} from '@maplibre/maplibre-gl-style-spec';
 import type {Evented} from '../util/evented.ts';
@@ -26,7 +26,21 @@ type ValidateStyle = {
     (b: any, a?: any | null): readonly ValidationError[];
 };
 
-export const validateStyle = (validateStyleMin as unknown as ValidateStyle);
+/** Renderer-local source schema until the option is part of the shared style specification. */
+const underzoomLevelsSpec = {type: 'enum', values: [0, 1, 2, 3, 4], default: 0};
+
+/** Source schema extensions are local to the renderer and do not mutate the shared specification. */
+const styleSpec = {
+    ...baseStyleSpec,
+    source_vector: {...baseStyleSpec.source_vector, underzoomLevels: underzoomLevelsSpec},
+    source_raster: {...baseStyleSpec.source_raster, underzoomLevels: underzoomLevelsSpec}
+};
+
+/** Validates whole styles and individual properties using the renderer's source schema. */
+export const validateStyle: ValidateStyle = extend(
+    (style: StyleSpecification) => validateStyleMin(style, styleSpec),
+    validateStyleMin
+) as ValidateStyle;
 
 /**
  * The source types the spec has a schema for, and therefore the only ones it can judge. Taken from

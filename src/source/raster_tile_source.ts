@@ -8,14 +8,15 @@ import {TileBounds} from '../tile/tile_bounds.ts';
 import {Texture} from '../webgl/texture.ts';
 import {RGBAImage} from '../util/image.ts';
 import {isAbortError} from '../util/abort_error.ts';
+import {normalizeUnderzoomLevels} from './underzoom.ts';
 
+import type {RasterSourceSpecification} from '../style/source_specification.ts';
 import type {Source} from './source.ts';
 import type {OverscaledTileID} from '../tile/tile_id.ts';
 import type {Map} from '../ui/map.ts';
 import type {Dispatcher} from '../util/dispatcher.ts';
 import type {Tile} from '../tile/tile.ts';
 import type {
-    RasterSourceSpecification,
     RasterDEMSourceSpecification
 } from '@maplibre/maplibre-gl-style-spec';
 
@@ -54,6 +55,8 @@ export class RasterTileSource extends Evented<SourceEventType> implements Source
     type: 'raster' | 'raster-dem';
     id: string;
     minzoom: number;
+    /** Number of native minimum-zoom levels retained below minzoom; zero for raster DEM sources. */
+    underzoomLevels: number;
     maxzoom: number;
     url: string;
     scheme: string;
@@ -79,6 +82,7 @@ export class RasterTileSource extends Evented<SourceEventType> implements Source
 
         this.type = 'raster';
         this.minzoom = 0;
+        this.underzoomLevels = normalizeUnderzoomLevels(options.type === 'raster' ? options.underzoomLevels : 0);
         this.maxzoom = 22;
         this.roundZoom = true;
         this.scheme = 'xyz';
