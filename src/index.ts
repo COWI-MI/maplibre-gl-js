@@ -85,6 +85,7 @@ import type {TerrainHeightMapTarget} from './render/terrain.ts';
 const version = packageJSON.version;
 
 export type * from '@maplibre/maplibre-gl-style-spec';
+export type {SourceSpecification, VectorSourceSpecification, RasterSourceSpecification, StyleSpecification, UnderzoomLevels, UnderzoomOptions} from './style/source_specification.ts';
 
 /**
  * Sets the map's [RTL text plugin](https://www.mapbox.com/mapbox-gl-js/plugins/#mapbox-gl-rtl-text).

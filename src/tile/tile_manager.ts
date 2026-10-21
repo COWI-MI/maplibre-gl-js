@@ -560,6 +560,7 @@ export class TileManager extends Evented<SourceEventType> {
             idealTileIDs = coveringTiles(transform, {
                 tileSize: this.usedForTerrain ? this.tileSize : this._source.tileSize,
                 minzoom: this._source.minzoom,
+                underzoomLevels: this.usedForTerrain ? 0 : this._source.underzoomLevels,
                 maxzoom: this._source.type === 'vector' && this.map._zoomLevelsToOverscale !== undefined
                     ? Math.max(this._source.maxzoom, transform.maxZoom - this.map._zoomLevelsToOverscale)
                     : this._source.maxzoom,

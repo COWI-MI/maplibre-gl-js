@@ -6,13 +6,15 @@ import {TileBounds} from '../tile/tile_bounds.ts';
 import {ResourceType} from '../util/request_manager.ts';
 import {MessageType} from '../util/actor_messages.ts';
 import {isAbortError} from '../util/abort_error.ts';
+import {normalizeUnderzoomLevels} from './underzoom.ts';
 
 import type {Source} from './source.ts';
 import type {OverscaledTileID} from '../tile/tile_id.ts';
 import type {Map} from '../ui/map.ts';
 import type {Dispatcher} from '../util/dispatcher.ts';
 import type {Tile} from '../tile/tile.ts';
-import type {VectorSourceSpecification, PromoteIdSpecification} from '@maplibre/maplibre-gl-style-spec';
+import type {PromoteIdSpecification} from '@maplibre/maplibre-gl-style-spec';
+import type {VectorSourceSpecification} from '../style/source_specification.ts';
 import type {RequestParameters} from '../util/ajax';
 import type {WorkerTileParameters, OverzoomParameters, WorkerTileResult, TileEncoding} from './worker_source.ts';
 
@@ -67,6 +69,8 @@ export class VectorTileSource extends Evented<SourceEventType> implements Source
     type: 'vector';
     id: string;
     minzoom: number;
+    /** Number of native minimum-zoom levels retained below minzoom. */
+    underzoomLevels: number;
     maxzoom: number;
     url: string;
     scheme: string;
@@ -93,6 +97,7 @@ export class VectorTileSource extends Evented<SourceEventType> implements Source
 
         this.type = 'vector';
         this.minzoom = 0;
+        this.underzoomLevels = normalizeUnderzoomLevels(options.underzoomLevels);
         this.maxzoom = 22;
         this.scheme = 'xyz';
         this.tileSize = 512;

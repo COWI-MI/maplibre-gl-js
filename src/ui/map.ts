@@ -34,6 +34,7 @@ import {CanonicalTileID, type OverscaledTileID} from '../tile/tile_id.ts';
 import {isStyleImageWebGLData} from '../style/style_image.ts';
 import {getRegisteredProjection} from '../geo/projection/projection_crud.ts';
 
+import type {SourceSpecification, StyleSpecification} from '../style/source_specification.ts';
 import type {PaddingOptions} from '../geo/edge_insets.ts';
 import type {Source} from '../source/source.ts';
 import type {StyleLayer} from '../style/style_layer.ts';
@@ -56,9 +57,7 @@ import type {TaskID} from '../util/task_queue.ts';
 import type {
     FilterSpecification,
     FontFacesSpecification,
-    StyleSpecification,
     LightSpecification,
-    SourceSpecification,
     TerrainSpecification,
     ProjectionSpecification,
     SkySpecification,
